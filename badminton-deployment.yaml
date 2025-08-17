@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: badminton-tracker
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: badminton-tracker
+  template:
+    metadata:
+      labels:
+        app: badminton-tracker
+    spec:
+      containers:
+      - name: badminton-tracker
+        image: badminton-tracker:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - mountPath: /app/backend/badminton.db
+          name: badminton-db
+      volumes:
+      - name: badminton-db
+        persistentVolumeClaim:
+          claimName: badminton-pvc

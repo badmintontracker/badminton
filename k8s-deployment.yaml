@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: badminton-tracker
+  namespace: badminton
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: badminton-tracker
+  template:
+    metadata:
+      labels:
+        app: badminton-tracker
+    spec:
+      containers:
+      - name: badminton-tracker
+        image: badminton-tracker-all:latest
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: badminton-db-storage
+          mountPath: /app/backend/data  # folder where SQLite DB will live
+      volumes:
+      - name: badminton-db-storage
+        hostPath:
+          path: /mnt/data/badminton-db  # local folder on your machine
+          type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: badminton-tracker-service
+  namespace: badminton
+spec:
+  selector:
+    app: badminton-tracker
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: NodePort  # easier for local cluster; use LoadBalancer in cloud
