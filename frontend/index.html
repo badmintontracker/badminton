@@ -1,39 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Badminton Tracker</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <style>
+    :root { --gap: 10px; --radius: 12px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; background:#0f172a; color:#e2e8f0; }
+    header { display:flex; gap:var(--gap); align-items:center; justify-content:space-between; padding:18px 20px; background:#111826; position:sticky; top:0; z-index:10; border-bottom:1px solid #1f2937;}
+    h1 { margin:0; font-size:20px; font-weight:700; letter-spacing:.3px; }
+    .row { display:flex; gap:var(--gap); flex-wrap:wrap; align-items:center; }
+    .card { background:#111827; border:1px solid #1f2937; border-radius:var(--radius); padding:12px; }
+    input, button, select { border-radius:10px; border:1px solid #1f2937; background:#0b1220; color:#e5e7eb; padding:8px 10px; }
+    button { cursor:pointer; background:#2563eb; border:none; }
+    button.secondary { background:#374151; }
+    button.danger { background:#dc2626; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
+    table { width:100%; border-collapse:collapse; background:#0b1220; border-radius:var(--radius); overflow:hidden; }
+    th, td { padding:10px 12px; border-bottom:1px solid #1f2937; text-align:left; font-size:14px; }
+    th { background:#0f172a; position:sticky; top:66px; z-index:5; }
+    tbody tr:hover { background:#0f172a; }
+    .muted { color:#94a3b8; font-size:12px; }
+    .flex { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .grow { flex:1; }
+    .right { text-align:right; }
+    .pill { padding:2px 8px; border-radius:999px; background:#0b1220; border:1px solid #1f2937; font-size:12px; }
+    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; }
+    .modal { background:#0b1220; border:1px solid #1f2937; border-radius:16px; padding:16px; width:min(560px, 94vw); }
+    .modal h3 { margin-top:0; }
+    .grid { display:grid; gap:10px; grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .grid .col-span-2 { grid-column: span 2; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    footer { padding:20px; color:#94a3b8; }
+  </style>
+  <!-- ExcelJS + FileSaver -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 </head>
-<body class="p-4">
-  <h2>🏸 Badminton Tracker</h2>
+<body>
+  <header>
+    <h1>🏸 Badminton Tracker</h1>
+    <div class="row">
+      <div class="card">
+        <div class="flex">
+          <label class="muted">Court</label>
+          <input type="number" id="courtCost" value="400" step="1" min="0" style="width:90px">
+          <label class="muted">Shuttle</label>
+          <input type="number" id="shuttleCost" value="100" step="1" min="0" style="width:90px">
+          <button id="saveSettingsBtn" class="secondary">Save Defaults</button>
+        </div>
+        <div class="muted">Cost per player per session = (Court + Shuttle) / Attendees</div>
+      </div>
 
-  <!-- Add Player -->
-  <h4>Add Player</h4>
-  <input id="playerName" placeholder="Player Name">
-  <input id="playerDeposit" type="number" placeholder="Deposit">
-  <button class="btn btn-primary btn-sm" onclick="addPlayer()">Add</button>
+      <div class="card">
+        <div class="flex">
+          <input id="newPlayerName" placeholder="Player name" />
+          <input id="newPlayerDeposit" type="number" step="1" min="0" placeholder="Initial deposit (optional)" />
+          <button id="addPlayerBtn">Add Player</button>
+        </div>
+        <div class="muted">Initial deposit defaults to 0 if empty.</div>
+      </div>
 
-  <!-- Players Table -->
-  <h4>Players</h4>
-  <table class="table table-striped" id="playersTable"></table>
+      <button id="exportExcelBtn">Download Excel Report</button>
+    </div>
+  </header>
 
-  <!-- Record Multi-Player Session -->
-  <h4>Record Session</h4>
-  <label>Select Players:</label><br>
-  <select id="sessionPlayers" multiple size="5" class="form-select w-50 mb-2"></select><br>
-  <input type="number" id="sessionCourtCost" placeholder="Court Cost">
-  <input type="number" id="sessionShuttleCost" placeholder="Shuttle Cost">
-  <input type="date" id="sessionDate">
-  <button class="btn btn-success btn-sm" onclick="addSession()">Add Session</button>
+  <main class="row" style="padding:16px;">
+    <div class="card grow">
+      <table id="playersTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Player</th>
+            <th class="right">Deposits</th>
+            <th class="right">Sessions</th>
+            <th class="right">Charges</th>
+            <th class="right">Balance</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="muted" style="margin-top:8px;">
+        Tip: You mentioned ~25 players, with 15–20 regulars. Use the per-session “attendees” field to split costs accurately.
+      </div>
+    </div>
+  </main>
 
-  <!-- Daily Report -->
-  <h3>📊 Daily Report</h3>
-  <div id="dailyReport"></div>
+  <!-- Modal -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="modal">
+      <h3 id="modalTitle">Edit</h3>
+      <div id="modalBody"></div>
+      <div class="flex" style="justify-content:flex-end; margin-top:12px;">
+        <button class="secondary" id="closeModalBtn">Close</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- Final Balances -->
-  <h3>🏸 Final Balances</h3>
-  <table class="table table-bordered" id="balanceTable"></table>
+  <footer>
+    © Badminton Tracker — Data persists in <span class="mono">sqlite</span>. Edit names or remove incorrect transactions from the player drawer.
+  </footer>
 
-  <script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
