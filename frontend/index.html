@@ -1,50 +1,32 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Badminton Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🏸 Badminton Tracker</h1>
+  <h1>Badminton Tracker</h1>
 
-  <!-- Login -->
-  <div id="loginSection">
-    <h2>Admin Login</h2>
-    <input id="username" placeholder="Username" />
-    <input id="password" placeholder="Password" type="password" />
-    <button onclick="login()">Login</button>
-    <p id="loginMsg"></p>
-  </div>
+  <section>
+    <h2>Sessions</h2>
+    <table id="sessionsTable" border="1">
+      <thead>
+        <tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Attendees</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
-  <!-- Admin Section -->
-  <div id="adminSection" style="display:none;">
-    <h2>Admin Panel</h2>
-    <h3>Add Player</h3>
-    <input id="playerName" placeholder="Player name" />
-    <button onclick="addPlayer()">Add</button>
-
-    <h3>Deposit</h3>
-    <select id="depositPlayer"></select>
-    <input id="depositAmount" type="number" placeholder="Amount" />
-    <button onclick="addDeposit()">Add Deposit</button>
-
-    <h3>Session</h3>
-    <input id="sessionDate" type="date" />
-    <input id="courtCost" type="number" placeholder="Court cost" />
-    <input id="shuttleCost" type="number" placeholder="Shuttle cost" />
-    <div id="attendeesList"></div>
-    <button onclick="addSession()">Add Session</button>
-  </div>
-
-  <!-- Reports -->
-  <div id="reportsSection">
-    <h2>📊 Reports (Public)</h2>
-    <button onclick="loadSessions()">Show Sessions</button>
-    <div id="sessionsTable"></div>
-
-    <button onclick="loadPlayerReport()">Show Player Report</button>
-    <div id="playerReport"></div>
-  </div>
+  <section>
+    <h2>Player Balances</h2>
+    <table id="reportTable" border="1">
+      <thead>
+        <tr><th>Player</th><th>Deposit</th><th>Balance</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
   <script src="script.js"></script>
 </body>
