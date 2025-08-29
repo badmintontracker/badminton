@@ -6,54 +6,36 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <h1>🏸 Badminton Tracker</h1>
+
+  <!-- Login -->
   <div id="loginSection">
-    <h2>Login</h2>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="Username" required><br>
-      <input type="password" id="password" placeholder="Password" required><br>
-      <button type="submit">Login</button>
-    </form>
-    <p id="loginError" class="error"></p>
+    <h2>Login (Admin Only)</h2>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+    <p id="loginMsg"></p>
   </div>
 
-  <div id="dashboard" class="hidden">
-    <h1>Badminton Club Dashboard</h1>
-    <button id="logoutBtn">Logout</button>
-
-    <h2>Players</h2>
-    <ul id="playersList"></ul>
-
-    <h2>Add Player</h2>
-    <form id="playerForm">
-      <input type="text" id="playerName" placeholder="Player Name" required>
-      <button type="submit">Add</button>
-    </form>
-
-    <h2>Add Deposit</h2>
-    <form id="depositForm">
-      <select id="depositPlayer"></select>
-      <input type="number" id="depositAmount" placeholder="Amount" required>
-      <button type="submit">Deposit</button>
-    </form>
-
-    <h2>Add Session</h2>
-    <form id="sessionForm">
-      <input type="date" id="sessionDate" required>
-      <input type="number" id="courtCost" placeholder="Court Cost" required>
-      <input type="number" id="shuttleCost" placeholder="Shuttle Cost" required>
-      <label>Select Attendees:</label><br>
-      <div id="attendeesCheckboxes"></div>
-      <button type="submit">Save Session</button>
-    </form>
+  <!-- Admin Panel -->
+  <div id="adminPanel" style="display:none;">
+    <h2>Admin Panel</h2>
+    <p>Welcome, Admin! (Here you can later add players, sessions, etc.)</p>
+    <button onclick="logout()">Logout</button>
   </div>
 
-  <div id="reports">
-    <h2>Reports</h2>
-    <button id="exportBtn">Export Balances</button>
-    <h3>Sessions</h3>
-    <table id="sessionsTable">
-      <thead><tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Attendees</th></tr></thead>
-      <tbody></tbody>
+  <!-- Reports Section -->
+  <div id="reportsSection">
+    <h2>📊 Reports</h2>
+
+    <h3>Sessions Report</h3>
+    <table border="1" id="sessionReport">
+      <tr><th>Date</th><th>Attendees</th></tr>
+    </table>
+
+    <h3>Player Report</h3>
+    <table border="1" id="playerReport">
+      <tr><th>Player</th><th>Deposit</th><th>Sessions Attended</th></tr>
     </table>
   </div>
 
