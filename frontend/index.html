@@ -1,44 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
   <title>Badminton Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .hidden { display: none; }
+    table { border-collapse: collapse; margin-top: 10px; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    th { background: #eee; }
+    .nav button { margin-right: 10px; }
+  </style>
 </head>
 <body>
-  <h1>🏸 Badminton Tracker</h1>
+  <h2>Badminton Tracker</h2>
+
+  <div class="nav">
+    <button onclick="showSection('login')">Login</button>
+    <button onclick="showSection('sessions')">Sessions</button>
+    <button onclick="showSection('reports')">Reports</button>
+  </div>
 
   <!-- Login -->
-  <div id="loginSection">
-    <h2>Login (Admin Only)</h2>
-    <input type="text" id="username" placeholder="Username"><br>
-    <input type="password" id="password" placeholder="Password"><br>
+  <div id="login" class="section">
+    <h3>Admin Login</h3>
+    <input id="username" placeholder="Username"><br>
+    <input id="password" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
-    <p id="loginMsg"></p>
+    <p id="loginStatus"></p>
   </div>
 
-  <!-- Admin Panel -->
-  <div id="adminPanel" style="display:none;">
-    <h2>Admin Panel</h2>
-    <p>Welcome, Admin! (Here you can later add players, sessions, etc.)</p>
-    <button onclick="logout()">Logout</button>
-  </div>
+  <!-- Sessions -->
+  <div id="sessions" class="section hidden">
+    <h3>Sessions</h3>
+    <form id="sessionForm">
+      <input id="date" type="date" required>
+      <input id="court" type="number" placeholder="Court Cost" required>
+      <input id="shuttle" type="number" placeholder="Shuttle Cost" required>
+      <input id="attendees" placeholder="Attendees (comma separated)" required>
+      <button type="submit">Add Session</button>
+    </form>
 
-  <!-- Reports Section -->
-  <div id="reportsSection">
-    <h2>📊 Reports</h2>
-
-    <h3>Sessions Report</h3>
-    <table border="1" id="sessionReport">
-      <tr><th>Date</th><th>Attendees</th></tr>
-    </table>
-
-    <h3>Player Report</h3>
-    <table border="1" id="playerReport">
-      <tr><th>Player</th><th>Deposit</th><th>Sessions Attended</th></tr>
+    <h4>All Sessions</h4>
+    <table id="sessionsTable">
+      <thead>
+        <tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Attendees</th><th>Share/Player</th></tr>
+      </thead>
+      <tbody></tbody>
     </table>
   </div>
 
-  <script src="script.js"></script>
+  <!-- Reports -->
+  <div id="reports" class="section hidden">
+    <h3>Reports</h3>
+    <h4>Player Balances</h4>
+    <table id="playersTable">
+      <thead>
+        <tr><th>Player</th><th>Deposit</th><th>Spent</th><th>Balance</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h4>Player-wise Details</h4>
+    <div id="playerDetails"></div>
+  </div>
 </body>
 </html>
