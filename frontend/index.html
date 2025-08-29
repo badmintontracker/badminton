@@ -1,108 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Badminton Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
-  <style>
-    :root { --gap: 10px; --radius: 12px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
-    body { margin: 0; background:#0f172a; color:#e2e8f0; }
-    header { display:flex; gap:var(--gap); align-items:center; justify-content:space-between; padding:18px 20px; background:#111826; position:sticky; top:0; z-index:10; border-bottom:1px solid #1f2937;}
-    h1 { margin:0; font-size:20px; font-weight:700; letter-spacing:.3px; }
-    .row { display:flex; gap:var(--gap); flex-wrap:wrap; align-items:center; }
-    .card { background:#111827; border:1px solid #1f2937; border-radius:var(--radius); padding:12px; }
-    input, button, select { border-radius:10px; border:1px solid #1f2937; background:#0b1220; color:#e5e7eb; padding:8px 10px; }
-    button { cursor:pointer; background:#2563eb; border:none; }
-    button.secondary { background:#374151; }
-    button.danger { background:#dc2626; }
-    button:disabled { opacity:.6; cursor:not-allowed; }
-    table { width:100%; border-collapse:collapse; background:#0b1220; border-radius:var(--radius); overflow:hidden; }
-    th, td { padding:10px 12px; border-bottom:1px solid #1f2937; text-align:left; font-size:14px; }
-    th { background:#0f172a; position:sticky; top:66px; z-index:5; }
-    tbody tr:hover { background:#0f172a; }
-    .muted { color:#94a3b8; font-size:12px; }
-    .flex { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-    .grow { flex:1; }
-    .right { text-align:right; }
-    .pill { padding:2px 8px; border-radius:999px; background:#0b1220; border:1px solid #1f2937; font-size:12px; }
-    .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; }
-    .modal { background:#0b1220; border:1px solid #1f2937; border-radius:16px; padding:16px; width:min(560px, 94vw); }
-    .modal h3 { margin-top:0; }
-    .grid { display:grid; gap:10px; grid-template-columns: repeat(2, minmax(0,1fr)); }
-    .grid .col-span-2 { grid-column: span 2; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-    footer { padding:20px; color:#94a3b8; }
-  </style>
-  <!-- ExcelJS + FileSaver -->
-  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header>
-    <h1>🏸 Badminton Tracker</h1>
-    <div class="row">
-      <div class="card">
-        <div class="flex">
-          <label class="muted">Court</label>
-          <input type="number" id="courtCost" value="400" step="1" min="0" style="width:90px">
-          <label class="muted">Shuttle</label>
-          <input type="number" id="shuttleCost" value="100" step="1" min="0" style="width:90px">
-          <button id="saveSettingsBtn" class="secondary">Save Defaults</button>
-        </div>
-        <div class="muted">Cost per player per session = (Court + Shuttle) / Attendees</div>
-      </div>
-
-      <div class="card">
-        <div class="flex">
-          <input id="newPlayerName" placeholder="Player name" />
-          <input id="newPlayerDeposit" type="number" step="1" min="0" placeholder="Initial deposit (optional)" />
-          <button id="addPlayerBtn">Add Player</button>
-        </div>
-        <div class="muted">Initial deposit defaults to 0 if empty.</div>
-      </div>
-
-      <button id="exportExcelBtn">Download Excel Report</button>
-    </div>
-  </header>
-
-  <main class="row" style="padding:16px;">
-    <div class="card grow">
-      <table id="playersTable">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Player</th>
-            <th class="right">Deposits</th>
-            <th class="right">Sessions</th>
-            <th class="right">Charges</th>
-            <th class="right">Balance</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <div class="muted" style="margin-top:8px;">
-        Tip: You mentioned ~25 players, with 15–20 regulars. Use the per-session “attendees” field to split costs accurately.
-      </div>
-    </div>
-  </main>
-
-  <!-- Modal -->
-  <div id="modalBackdrop" class="modal-backdrop">
-    <div class="modal">
-      <h3 id="modalTitle">Edit</h3>
-      <div id="modalBody"></div>
-      <div class="flex" style="justify-content:flex-end; margin-top:12px;">
-        <button class="secondary" id="closeModalBtn">Close</button>
-      </div>
-    </div>
+  <div id="loginSection">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="Username" required><br>
+      <input type="password" id="password" placeholder="Password" required><br>
+      <button type="submit">Login</button>
+    </form>
+    <p id="loginError" class="error"></p>
   </div>
 
-  <footer>
-    © Badminton Tracker — Data persists in <span class="mono">sqlite</span>. Edit names or remove incorrect transactions from the player drawer.
-  </footer>
+  <div id="dashboard" class="hidden">
+    <h1>Badminton Club Dashboard</h1>
+    <button id="logoutBtn">Logout</button>
 
-  <script src="./script.js"></script>
+    <h2>Players</h2>
+    <ul id="playersList"></ul>
+
+    <h2>Add Player</h2>
+    <form id="playerForm">
+      <input type="text" id="playerName" placeholder="Player Name" required>
+      <button type="submit">Add</button>
+    </form>
+
+    <h2>Add Deposit</h2>
+    <form id="depositForm">
+      <select id="depositPlayer"></select>
+      <input type="number" id="depositAmount" placeholder="Amount" required>
+      <button type="submit">Deposit</button>
+    </form>
+
+    <h2>Add Session</h2>
+    <form id="sessionForm">
+      <input type="date" id="sessionDate" required>
+      <input type="number" id="courtCost" placeholder="Court Cost" required>
+      <input type="number" id="shuttleCost" placeholder="Shuttle Cost" required>
+      <label>Select Attendees:</label><br>
+      <div id="attendeesCheckboxes"></div>
+      <button type="submit">Save Session</button>
+    </form>
+  </div>
+
+  <div id="reports">
+    <h2>Reports</h2>
+    <button id="exportBtn">Export Balances</button>
+    <h3>Sessions</h3>
+    <table id="sessionsTable">
+      <thead><tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Attendees</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
