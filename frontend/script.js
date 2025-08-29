@@ -1,93 +1,79 @@
-const API = "http://localhost:8080/api"; // adjust if deployed
-
-function showSection(id) {
-  document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-// Login
 async function login() {
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
 
-  const res = await fetch(`${API}/login`, {
+  let res = await fetch("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password })
   });
 
   if (res.ok) {
-    document.getElementById("loginStatus").innerText = "Login successful";
-    showSection("sessions");
-    loadSessions();
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("adminSection").style.display = "block";
   } else {
-    document.getElementById("loginStatus").innerText = "Invalid credentials";
+    document.getElementById("loginMsg").innerText = "Invalid login!";
   }
 }
 
-// Add session
-document.getElementById("sessionForm")?.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const date = document.getElementById("date").value;
-  const court = parseInt(document.getElementById("court").value);
-  const shuttle = parseInt(document.getElementById("shuttle").value);
-  const attendees = document.getElementById("attendees").value.split(",").map(s => s.trim());
+async function addDeposit() {
+  const player = document.getElementById("depositPlayer").value;
+  const amount = parseInt(document.getElementById("depositAmount").value);
+  const date = document.getElementById("depositDate").value;
 
-  await fetch(`${API}/session`, {
+  await fetch("/api/deposits", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ player, amount, date })
+  });
+  loadReports();
+}
+
+async function addSession() {
+  const date = document.getElementById("sessionDate").value;
+  const court = parseInt(document.getElementById("sessionCourt").value);
+  const shuttle = parseInt(document.getElementById("sessionShuttle").value);
+  const attendees = document.getElementById("sessionAttendees").value.split(",").map(s => s.trim());
+
+  await fetch("/api/sessions", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ date, court, shuttle, attendees })
   });
-
-  loadSessions();
-});
-
-// Load sessions
-async function loadSessions() {
-  const res = await fetch(`${API}/sessions`);
-  const data = await res.json();
-  const tbody = document.querySelector("#sessionsTable tbody");
-  tbody.innerHTML = "";
-
-  data.forEach(s => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${s.date}</td><td>${s.court}</td><td>${s.shuttle}</td><td>${s.attendees.join(", ")}</td><td>${s.share.toFixed(2)}</td>`;
-    tbody.appendChild(tr);
-  });
+  loadReports();
 }
 
-// Load reports
 async function loadReports() {
-  const res = await fetch(`${API}/reports`);
-  const data = await res.json();
+  let res = await fetch("/api/reports");
+  let data = await res.json();
 
-  // Player balances
-  const tbody = document.querySelector("#playersTable tbody");
-  tbody.innerHTML = "";
-  data.forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${p.name}</td><td>${p.deposit}</td><td>${p.spent.toFixed(2)}</td><td>${p.balance.toFixed(2)}</td>`;
-    tbody.appendChild(tr);
-  });
+  // Balances
+  let balancesHTML = "<h3>Balances</h3><table border='1'><tr><th>Player</th><th>Balance</th></tr>";
+  for (let player in data.players) {
+    balancesHTML += `<tr><td>${player}</td><td>${data.players[player].balance.toFixed(2)}</td></tr>`;
+  }
+  balancesHTML += "</table>";
+  document.getElementById("balances").innerHTML = balancesHTML;
 
-  // Player-wise details
-  const detailsDiv = document.getElementById("playerDetails");
-  detailsDiv.innerHTML = "";
-  data.forEach(p => {
-    const div = document.createElement("div");
-    div.innerHTML = `<h5>${p.name}</h5>`;
-    const table = document.createElement("table");
-    table.innerHTML = `<thead><tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Share</th></tr></thead>`;
-    const tb = document.createElement("tbody");
-    p.sessions.forEach(s => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${s.date}</td><td>${s.court}</td><td>${s.shuttle}</td><td>${s.share.toFixed(2)}</td>`;
-      tb.appendChild(tr);
+  // Player histories
+  let historiesHTML = "<h3>Player Histories</h3>";
+  for (let player in data.players) {
+    historiesHTML += `<h4>${player}</h4><ul>`;
+    data.players[player].deposits.forEach(d => {
+      historiesHTML += `<li>Deposit: +${d.amount} (${d.date})</li>`;
     });
-    table.appendChild(tb);
-    div.appendChild(table);
-    detailsDiv.appendChild(div);
-  });
-}
+    data.players[player].sessions.forEach(s => {
+      historiesHTML += `<li>Session: -${s.share.toFixed(2)} (Court ${s.court}, Shuttle ${s.shuttle}, Date ${s.date})</li>`;
+    });
+    historiesHTML += `</ul><b>Balance: ${data.players[player].balance.toFixed(2)}</b>`;
+  }
+  document.getElementById("playerHistories").innerHTML = historiesHTML;
 
-document.querySelector("button[onclick=\"showSection('reports')\"]").addEventListener("click", loadReports);
+  // Sessions
+  let sessionsHTML = "<h3>Sessions</h3><table border='1'><tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Attendees</th><th>Per Share</th></tr>";
+  data.sessions.forEach(s => {
+    sessionsHTML += `<tr><td>${s.date}</td><td>${s.court}</td><td>${s.shuttle}</td><td>${s.attendees.join(", ")}</td><td>${s.perShare.toFixed(2)}</td></tr>`;
+  });
+  sessionsHTML += "</table>";
+  document.getElementById("sessions").innerHTML = sessionsHTML;
+}
