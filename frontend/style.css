@@ -1,0 +1,21 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.hidden {
+  display: none;
+}
+
+form input, form select, form button {
+  margin: 5px;
+  padding: 5px;
+}
+
+button {
+  cursor: pointer;
+}
+
+.error {
+  color: red;
+}
