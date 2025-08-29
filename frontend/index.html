@@ -1,35 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <title>Badminton Tracker</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .hidden { display: none; }
+    .negative { color: red; font-weight: bold; }
+  </style>
 </head>
 <body>
-  <h1>🏸 Badminton Tracker</h1>
+  <h2>Badminton Tracker</h2>
 
+  <!-- Login -->
   <div id="loginSection">
-    <h2>Login</h2>
+    <h3>Login</h3>
     <input id="username" placeholder="Username">
     <input id="password" type="password" placeholder="Password">
     <button onclick="login()">Login</button>
-    <p id="loginStatus"></p>
+    <p id="loginMsg"></p>
   </div>
 
-  <div id="app" style="display:none;">
-    <h2>Players</h2>
-    <input id="playerName" placeholder="Player name">
-    <input id="playerDeposit" placeholder="Deposit" type="number">
+  <!-- Admin -->
+  <div id="adminSection" class="hidden">
+    <h3>Add Player</h3>
+    <input id="playerName" placeholder="Name">
+    <input id="playerDeposit" type="number" placeholder="Deposit">
     <button onclick="addPlayer()">Add Player</button>
-    <ul id="playersList"></ul>
 
-    <h2>Sessions</h2>
-    <button onclick="loadSessions()">Refresh Sessions</button>
-    <table border="1" id="sessionsTable"></table>
+    <h3>Add Session</h3>
+    <input id="sessionDate" type="date">
+    <input id="sessionCourt" type="number" placeholder="Court Cost">
+    <input id="sessionShuttle" type="number" placeholder="Shuttle Cost">
+    <input id="sessionAttendees" placeholder="Comma-separated players">
+    <button onclick="addSession()">Add Session</button>
+  </div>
 
-    <h2>Reports</h2>
-    <button onclick="loadReport()">Player-wise Report</button>
-    <table border="1" id="reportTable"></table>
+  <!-- Reports -->
+  <div id="reportSection">
+    <h3>Reports</h3>
+    <button onclick="loadReport()">Load Report</button>
+    <div id="reportTable"></div>
   </div>
 
   <script src="script.js"></script>
