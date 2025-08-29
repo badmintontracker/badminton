@@ -2,43 +2,48 @@
 <html>
 <head>
   <title>Badminton Tracker</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Badminton Tracker</h1>
+  <h1>🏸 Badminton Tracker</h1>
 
-  <!-- Login Section -->
+  <!-- Login -->
   <div id="loginSection">
     <h2>Admin Login</h2>
-    <input id="username" placeholder="Username"><br>
-    <input id="password" type="password" placeholder="Password"><br>
+    <input id="username" placeholder="Username" />
+    <input id="password" placeholder="Password" type="password" />
     <button onclick="login()">Login</button>
     <p id="loginMsg"></p>
   </div>
 
   <!-- Admin Section -->
   <div id="adminSection" style="display:none;">
-    <h2>Add Deposit</h2>
-    <input id="depositPlayer" placeholder="Player">
-    <input id="depositAmount" type="number" placeholder="Amount">
-    <input id="depositDate" type="date">
+    <h2>Admin Panel</h2>
+    <h3>Add Player</h3>
+    <input id="playerName" placeholder="Player name" />
+    <button onclick="addPlayer()">Add</button>
+
+    <h3>Deposit</h3>
+    <select id="depositPlayer"></select>
+    <input id="depositAmount" type="number" placeholder="Amount" />
     <button onclick="addDeposit()">Add Deposit</button>
 
-    <h2>Add Session</h2>
-    <input id="sessionDate" type="date">
-    <input id="sessionCourt" type="number" placeholder="Court Cost">
-    <input id="sessionShuttle" type="number" placeholder="Shuttle Cost">
-    <input id="sessionAttendees" placeholder="Attendees (comma separated)">
+    <h3>Session</h3>
+    <input id="sessionDate" type="date" />
+    <input id="courtCost" type="number" placeholder="Court cost" />
+    <input id="shuttleCost" type="number" placeholder="Shuttle cost" />
+    <div id="attendeesList"></div>
     <button onclick="addSession()">Add Session</button>
   </div>
 
-  <!-- Reports Section -->
+  <!-- Reports -->
   <div id="reportsSection">
-    <h2>Reports</h2>
-    <button onclick="loadReports()">Refresh Reports</button>
-    <div id="balances"></div>
-    <div id="playerHistories"></div>
-    <div id="sessions"></div>
+    <h2>📊 Reports (Public)</h2>
+    <button onclick="loadSessions()">Show Sessions</button>
+    <div id="sessionsTable"></div>
+
+    <button onclick="loadPlayerReport()">Show Player Report</button>
+    <div id="playerReport"></div>
   </div>
 
   <script src="script.js"></script>
