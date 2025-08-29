@@ -1,89 +1,60 @@
+let currentUser = null;
+
 async function login() {
   const username = document.getElementById("username").value;
   const password = document.getElementById("password").value;
 
-  const res = await fetch("/api/login", {
+  let res = await fetch("/api/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password })
   });
 
-  const data = await res.json();
-  if (data.ok) {
-    document.getElementById("loginStatus").innerText = "✅ Login successful";
-    document.getElementById("loginSection").style.display = "none";
-    document.getElementById("app").style.display = "block";
-    loadPlayers();
-    loadSessions();
+  if (res.ok) {
+    let data = await res.json();
+    currentUser = data.username;
+    document.getElementById("loginSection").classList.add("hidden");
+    document.getElementById("adminSection").classList.remove("hidden");
   } else {
-    document.getElementById("loginStatus").innerText = "❌ Login failed";
+    document.getElementById("loginMsg").innerText = "Login failed!";
   }
 }
 
 async function addPlayer() {
-  const name = document.getElementById("playerName").value.trim();
-  const deposit = parseInt(document.getElementById("playerDeposit").value) || 0;
-  if (!name) return alert("Enter player name");
-
-  const res = await fetch("/api/players", {
+  let name = document.getElementById("playerName").value.trim();
+  let deposit = parseInt(document.getElementById("playerDeposit").value) || 0;
+  await fetch("/api/players", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, deposit }),
+    body: JSON.stringify({ name, deposit })
   });
-
-  const data = await res.json();
-  if (data.error) alert("Error: " + data.error);
-  else loadPlayers();
+  alert("Player added!");
 }
 
-async function loadPlayers() {
-  const res = await fetch("/api/players");
-  const players = await res.json();
+async function addSession() {
+  let date = document.getElementById("sessionDate").value;
+  let court = parseInt(document.getElementById("sessionCourt").value) || 0;
+  let shuttle = parseInt(document.getElementById("sessionShuttle").value) || 0;
+  let attendees = document.getElementById("sessionAttendees").value.split(",").map(s => s.trim());
 
-  const list = document.getElementById("playersList");
-  list.innerHTML = "";
-  players.forEach((p) => {
-    const li = document.createElement("li");
-    li.innerText = `${p.name} (Deposit: ₹${p.deposit})`;
-    list.appendChild(li);
+  await fetch("/api/sessions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ date, court, shuttle, attendees })
   });
-}
-
-async function loadSessions() {
-  const res = await fetch("/api/sessions");
-  const sessions = await res.json();
-
-  const table = document.getElementById("sessionsTable");
-  table.innerHTML = "<tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Attendees</th><th>Share</th></tr>";
-
-  sessions.forEach((s) => {
-    const row = table.insertRow();
-    row.insertCell().innerText = s.date;
-    row.insertCell().innerText = s.court;
-    row.insertCell().innerText = s.shuttle;
-    row.insertCell().innerText = s.attendees.join(", ");
-    const share = (s.court + s.shuttle) / s.attendees.length;
-    row.insertCell().innerText = "₹" + share.toFixed(2);
-  });
+  alert("Session added!");
 }
 
 async function loadReport() {
-  const res = await fetch("/api/reports/player-wise");
-  const report = await res.json();
+  let res = await fetch("/api/report");
+  let data = await res.json();
 
-  const table = document.getElementById("reportTable");
-  table.innerHTML = "<tr><th>Player</th><th>Deposit</th><th>Spent</th><th>Balance</th></tr>";
-
-  report.forEach((r) => {
-    const row = table.insertRow();
-    row.insertCell().innerText = r.name;
-    row.insertCell().innerText = "₹" + r.deposit;
-    row.insertCell().innerText = "₹" + r.spent;
-    const balCell = row.insertCell();
-    balCell.innerText = "₹" + r.balance;
-    if (parseFloat(r.balance) < 0) {
-      balCell.style.color = "red"; // highlight negative balances
-      balCell.style.fontWeight = "bold";
-    }
-  });
+  let html = `<table border="1" cellpadding="5">
+    <tr><th>Player</th><th>Balance</th></tr>`;
+  for (let [player, balance] of Object.entries(data.balances)) {
+    let cls = balance < 0 ? "negative" : "";
+    html += `<tr><td>${player}</td><td class="${cls}">${balance.toFixed(2)}</td></tr>`;
+  }
+  html += `</table>`;
+  document.getElementById("reportTable").innerHTML = html;
 }
