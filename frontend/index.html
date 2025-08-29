@@ -1,69 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
   <title>Badminton Tracker</title>
-  <script src="script.js" defer></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .hidden { display: none; }
-    table { border-collapse: collapse; margin-top: 10px; width: 100%; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    th { background: #eee; }
-    .nav button { margin-right: 10px; }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h2>Badminton Tracker</h2>
+  <h1>Badminton Tracker</h1>
 
-  <div class="nav">
-    <button onclick="showSection('login')">Login</button>
-    <button onclick="showSection('sessions')">Sessions</button>
-    <button onclick="showSection('reports')">Reports</button>
-  </div>
-
-  <!-- Login -->
-  <div id="login" class="section">
-    <h3>Admin Login</h3>
+  <!-- Login Section -->
+  <div id="loginSection">
+    <h2>Admin Login</h2>
     <input id="username" placeholder="Username"><br>
     <input id="password" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
-    <p id="loginStatus"></p>
+    <p id="loginMsg"></p>
   </div>
 
-  <!-- Sessions -->
-  <div id="sessions" class="section hidden">
-    <h3>Sessions</h3>
-    <form id="sessionForm">
-      <input id="date" type="date" required>
-      <input id="court" type="number" placeholder="Court Cost" required>
-      <input id="shuttle" type="number" placeholder="Shuttle Cost" required>
-      <input id="attendees" placeholder="Attendees (comma separated)" required>
-      <button type="submit">Add Session</button>
-    </form>
+  <!-- Admin Section -->
+  <div id="adminSection" style="display:none;">
+    <h2>Add Deposit</h2>
+    <input id="depositPlayer" placeholder="Player">
+    <input id="depositAmount" type="number" placeholder="Amount">
+    <input id="depositDate" type="date">
+    <button onclick="addDeposit()">Add Deposit</button>
 
-    <h4>All Sessions</h4>
-    <table id="sessionsTable">
-      <thead>
-        <tr><th>Date</th><th>Court</th><th>Shuttle</th><th>Attendees</th><th>Share/Player</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+    <h2>Add Session</h2>
+    <input id="sessionDate" type="date">
+    <input id="sessionCourt" type="number" placeholder="Court Cost">
+    <input id="sessionShuttle" type="number" placeholder="Shuttle Cost">
+    <input id="sessionAttendees" placeholder="Attendees (comma separated)">
+    <button onclick="addSession()">Add Session</button>
   </div>
 
-  <!-- Reports -->
-  <div id="reports" class="section hidden">
-    <h3>Reports</h3>
-    <h4>Player Balances</h4>
-    <table id="playersTable">
-      <thead>
-        <tr><th>Player</th><th>Deposit</th><th>Spent</th><th>Balance</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <h4>Player-wise Details</h4>
-    <div id="playerDetails"></div>
+  <!-- Reports Section -->
+  <div id="reportsSection">
+    <h2>Reports</h2>
+    <button onclick="loadReports()">Refresh Reports</button>
+    <div id="balances"></div>
+    <div id="playerHistories"></div>
+    <div id="sessions"></div>
   </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
