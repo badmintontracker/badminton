@@ -2,180 +2,131 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
+const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = 8080;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, "../frontend")));
 
-// DB setup
+// --- DB Setup ---
 const db = new sqlite3.Database("./badminton.db");
 
+// create tables
 db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS players (
+  db.run(`CREATE TABLE IF NOT EXISTS deposits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE,
-    deposit INTEGER DEFAULT 0
+    player TEXT,
+    amount INTEGER,
+    date TEXT
   )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     date TEXT,
     court INTEGER,
-    shuttle INTEGER
-  )`);
-
-  db.run(`CREATE TABLE IF NOT EXISTS attendees (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    session_id INTEGER,
-    player_id INTEGER,
-    FOREIGN KEY(session_id) REFERENCES sessions(id),
-    FOREIGN KEY(player_id) REFERENCES players(id)
+    shuttle INTEGER,
+    attendees TEXT
   )`);
 });
 
-// Login (simple demo)
+// --- Authentication ---
+const ADMIN = { username: "admin", password: "admin123" };
+
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
-  if (username === "admin" && password === "admin123") {
-    res.json({ ok: true, username: "admin" });
+  if (username === ADMIN.username && password === ADMIN.password) {
+    res.json({ ok: true, username });
   } else {
-    res.status(401).json({ ok: false, message: "Invalid login" });
+    res.status(401).json({ ok: false, message: "Invalid credentials" });
   }
 });
 
-// Add deposit
-app.post("/api/deposit", (req, res) => {
-  const { name, amount } = req.body;
+// --- Deposits ---
+app.post("/api/deposits", (req, res) => {
+  const { player, amount, date } = req.body;
   db.run(
-    `INSERT INTO players (name, deposit) VALUES (?, ?)
-     ON CONFLICT(name) DO UPDATE SET deposit = deposit + ?`,
-    [name, amount, amount],
+    "INSERT INTO deposits (player, amount, date) VALUES (?, ?, ?)",
+    [player, amount, date],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ ok: true });
+      res.json({ ok: true, id: this.lastID });
     }
   );
 });
 
-// Add session
-app.post("/api/session", (req, res) => {
-  const { date, court, shuttle, attendees } = req.body;
-  db.run(
-    `INSERT INTO sessions (date, court, shuttle) VALUES (?, ?, ?)`,
-    [date, court, shuttle],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      const sessionId = this.lastID;
-      attendees.forEach((player) => {
-        db.run(
-          `INSERT OR IGNORE INTO players (name) VALUES (?)`,
-          [player],
-          () => {
-            db.get(
-              `SELECT id FROM players WHERE name = ?`,
-              [player],
-              (err, row) => {
-                if (row) {
-                  db.run(
-                    `INSERT INTO attendees (session_id, player_id) VALUES (?, ?)`,
-                    [sessionId, row.id]
-                  );
-                }
-              }
-            );
-          }
-        );
-      });
-      res.json({ ok: true });
-    }
-  );
-});
-
-// Get all sessions with attendees and share
-app.get("/api/sessions", (req, res) => {
-  db.all(
-    `SELECT s.id, s.date, s.court, s.shuttle,
-            GROUP_CONCAT(p.name) as attendees
-     FROM sessions s
-     LEFT JOIN attendees a ON s.id = a.session_id
-     LEFT JOIN players p ON a.player_id = p.id
-     GROUP BY s.id
-     ORDER BY s.date DESC`,
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-
-      const sessions = rows.map((row) => {
-        const names = row.attendees ? row.attendees.split(",") : [];
-        const totalCost = row.court + row.shuttle;
-        const perShare = names.length > 0 ? totalCost / names.length : 0;
-        return {
-          id: row.id,
-          date: row.date,
-          court: row.court,
-          shuttle: row.shuttle,
-          attendees: names,
-          share: perShare
-        };
-      });
-      res.json(sessions);
-    }
-  );
-});
-
-// Player-wise report
-app.get("/api/reports", (req, res) => {
-  db.all(`SELECT * FROM players`, [], (err, players) => {
+app.get("/api/deposits", (req, res) => {
+  db.all("SELECT * FROM deposits", [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-
-    db.all(
-      `SELECT s.id, s.date, s.court, s.shuttle, GROUP_CONCAT(p.name) as attendees
-       FROM sessions s
-       LEFT JOIN attendees a ON s.id = a.session_id
-       LEFT JOIN players p ON a.player_id = p.id
-       GROUP BY s.id`,
-      [],
-      (err2, sessions) => {
-        if (err2) return res.status(500).json({ error: err2.message });
-
-        // Build player report
-        const report = players.map((pl) => {
-          let spent = 0;
-          const history = [];
-
-          sessions.forEach((s) => {
-            const names = s.attendees ? s.attendees.split(",") : [];
-            const totalCost = s.court + s.shuttle;
-            const perShare = names.length > 0 ? totalCost / names.length : 0;
-
-            if (names.includes(pl.name)) {
-              spent += perShare;
-              history.push({
-                date: s.date,
-                court: s.court,
-                shuttle: s.shuttle,
-                share: perShare
-              });
-            }
-          });
-
-          return {
-            name: pl.name,
-            deposit: pl.deposit,
-            spent,
-            balance: pl.deposit - spent,
-            sessions: history
-          };
-        });
-
-        res.json(report);
-      }
-    );
+    res.json(rows);
   });
 });
 
+// --- Sessions ---
+app.post("/api/sessions", (req, res) => {
+  const { date, court, shuttle, attendees } = req.body;
+  db.run(
+    "INSERT INTO sessions (date, court, shuttle, attendees) VALUES (?, ?, ?, ?)",
+    [date, court, shuttle, attendees.join(",")],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true, id: this.lastID });
+    }
+  );
+});
+
+app.get("/api/sessions", (req, res) => {
+  db.all("SELECT * FROM sessions", [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    rows.forEach(r => {
+      r.attendees = r.attendees ? r.attendees.split(",") : [];
+    });
+    res.json(rows);
+  });
+});
+
+// --- Reports (Balances & Player History) ---
+app.get("/api/reports", async (req, res) => {
+  db.all("SELECT * FROM deposits", [], (err, deposits) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    db.all("SELECT * FROM sessions", [], (err2, sessions) => {
+      if (err2) return res.status(500).json({ error: err2.message });
+
+      sessions.forEach(s => {
+        s.attendees = s.attendees ? s.attendees.split(",") : [];
+      });
+
+      let players = {};
+
+      // add deposits
+      deposits.forEach(d => {
+        if (!players[d.player]) players[d.player] = { deposits: [], sessions: [], balance: 0 };
+        players[d.player].deposits.push(d);
+        players[d.player].balance += d.amount;
+      });
+
+      // deduct session shares
+      sessions.forEach(s => {
+        const cost = (s.court || 0) + (s.shuttle || 0);
+        const perShare = s.attendees.length > 0 ? cost / s.attendees.length : 0;
+        s.perShare = perShare;
+
+        s.attendees.forEach(p => {
+          if (!players[p]) players[p] = { deposits: [], sessions: [], balance: 0 };
+          players[p].sessions.push({ ...s, share: perShare });
+          players[p].balance -= perShare;
+        });
+      });
+
+      res.json({ players, deposits, sessions });
+    });
+  });
+});
+
+// --- Start Server ---
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
