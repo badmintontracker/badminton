@@ -1,39 +1,35 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Badminton Tracker</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #login, #app { margin-bottom: 20px; }
-    .hidden { display: none; }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
-    th { background: #f4f4f4; }
-    .negative { color: red; font-weight: bold; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>🏸 Badminton Tracker</h1>
 
-  <div id="login">
-    <h2>Admin Login</h2>
-    <input id="username" placeholder="Username"><br>
-    <input id="password" type="password" placeholder="Password"><br>
+  <div id="loginSection">
+    <h2>Login</h2>
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
     <button onclick="login()">Login</button>
-    <p id="loginError" style="color:red"></p>
+    <p id="loginStatus"></p>
   </div>
 
-  <div id="app" class="hidden">
-    <h2>Dashboard</h2>
-    <button onclick="loadPlayers()">Players</button>
-    <button onclick="loadSessions()">Sessions</button>
-    <button onclick="loadReport()">Reports</button>
-    <div id="content"></div>
-  </div>
+  <div id="app" style="display:none;">
+    <h2>Players</h2>
+    <input id="playerName" placeholder="Player name">
+    <input id="playerDeposit" placeholder="Deposit" type="number">
+    <button onclick="addPlayer()">Add Player</button>
+    <ul id="playersList"></ul>
 
-  <div id="report">
-    <h2>Public Reports</h2>
-    <div id="reportContent"></div>
+    <h2>Sessions</h2>
+    <button onclick="loadSessions()">Refresh Sessions</button>
+    <table border="1" id="sessionsTable"></table>
+
+    <h2>Reports</h2>
+    <button onclick="loadReport()">Player-wise Report</button>
+    <table border="1" id="reportTable"></table>
   </div>
 
   <script src="script.js"></script>
